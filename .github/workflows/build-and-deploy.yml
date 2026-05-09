@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/sub2api
+  IMAGE_NAME: zoramoore/sub2api
   HAS_DEPLOY_SECRETS: ${{ secrets.DO_HOST != '' && secrets.DO_USER != '' && secrets.DO_SSH_KEY != '' }}
 
 jobs:
