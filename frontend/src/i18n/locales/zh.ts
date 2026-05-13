@@ -10,9 +10,13 @@ export default {
     login: '登录',
     getStarted: '立即开始',
     goToDashboard: '进入控制台',
+    modelNav: '模型',
+    searchPlaceholder: '搜索模型、服务商和能力',
+    browseModelMarketplace: '浏览模型广场',
+    heroTitle: '获取答案。寻找灵感。提升效率。',
     // 新增：面向用户的价值主张
     heroSubtitle: '一个密钥，畅用多个 AI 模型',
-    heroDescription: '无需管理多个订阅账号，一站式接入 Claude、GPT、Gemini 等主流 AI 服务',
+    heroDescription: '全新的 GPT-5.5，为专业工作、编码和长时运行的智能体而打造，现已向所有人开放。',
     tags: {
       subscriptionToApi: '订阅转 API',
       stickySession: '会话保持',

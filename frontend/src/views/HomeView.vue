@@ -38,16 +38,34 @@
 
     <!-- Header -->
     <header class="relative z-20 px-6 py-4">
-      <nav class="mx-auto flex max-w-6xl items-center justify-between">
+      <nav class="mx-auto grid max-w-6xl grid-cols-[auto,1fr,auto] items-center gap-4">
         <!-- Logo -->
-        <div class="flex items-center">
+        <div class="flex items-center gap-3">
           <div class="h-10 w-10 overflow-hidden rounded-xl shadow-md">
             <img :src="siteLogo || '/logo.png'" alt="Logo" class="h-full w-full object-contain" />
           </div>
+          <span class="hidden text-base font-bold text-gray-900 dark:text-white sm:inline">
+            {{ siteName }}
+          </span>
+        </div>
+
+        <div
+          class="mx-auto hidden w-full max-w-md items-center gap-3 rounded-xl bg-white/70 px-4 py-2.5 text-gray-500 shadow-sm ring-1 ring-gray-200/60 backdrop-blur-sm dark:bg-dark-800/70 dark:text-dark-300 dark:ring-dark-700/60 md:flex"
+        >
+          <Icon name="search" size="sm" class="shrink-0" />
+          <span class="truncate text-sm">{{ t('home.searchPlaceholder') }}</span>
         </div>
 
         <!-- Nav Actions -->
         <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-dark-300 dark:hover:text-white md:inline-flex"
+            @click="openModelMarketplace"
+          >
+            {{ t('home.modelNav') }}
+          </button>
+
           <!-- Language Switcher -->
           <LocaleSwitcher />
 
@@ -73,34 +91,9 @@
             <Icon v-else name="moon" size="md" />
           </button>
 
-          <!-- Login / Dashboard Button -->
+          <!-- Login Button -->
           <router-link
-            v-if="isAuthenticated"
-            :to="dashboardPath"
-            class="inline-flex items-center gap-1.5 rounded-full bg-gray-900 py-1 pl-1 pr-2.5 transition-colors hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700"
-          >
-            <span
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-[10px] font-semibold text-white"
-            >
-              {{ userInitial }}
-            </span>
-            <span class="text-xs font-medium text-white">{{ t('home.dashboard') }}</span>
-            <svg
-              class="h-3 w-3 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-              />
-            </svg>
-          </router-link>
-          <router-link
-            v-else
+            v-if="!isAuthenticated"
             to="/login"
             class="inline-flex items-center rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700"
           >
@@ -113,68 +106,40 @@
     <!-- Main Content -->
     <main class="relative z-10 flex-1 px-6 py-16">
       <div class="mx-auto max-w-6xl">
-        <!-- Hero Section - Left/Right Layout -->
-        <div class="mb-12 flex flex-col items-center justify-between gap-12 lg:flex-row lg:gap-16">
-          <!-- Left: Text Content -->
-          <div class="flex-1 text-center lg:text-left">
+        <!-- Hero Section -->
+        <section class="mb-14 flex min-h-[560px] flex-col items-center justify-center text-center">
+          <div class="mx-auto max-w-5xl">
             <h1
-              class="mb-4 text-4xl font-bold text-gray-900 dark:text-white md:text-5xl lg:text-6xl"
+              class="mb-8 text-5xl font-black leading-[0.98] text-gray-950 dark:text-white sm:text-6xl md:text-7xl lg:text-8xl"
             >
-              {{ siteName }}
+              {{ t('home.heroTitle') }}
             </h1>
-            <p class="mb-8 text-lg text-gray-600 dark:text-dark-300 md:text-xl">
-              {{ siteSubtitle }}
+            <p
+              class="mx-auto mb-10 max-w-3xl text-lg leading-8 text-gray-600 dark:text-dark-300 md:text-xl"
+            >
+              {{ t('home.heroDescription') }}
             </p>
 
-            <!-- CTA Button -->
-            <div>
+            <div class="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <router-link
                 :to="isAuthenticated ? dashboardPath : '/login'"
-                class="btn btn-primary px-8 py-3 text-base shadow-lg shadow-primary-500/30"
+                class="btn btn-primary min-w-56 px-8 py-3 text-base shadow-lg shadow-primary-500/30"
               >
                 {{ isAuthenticated ? t('home.goToDashboard') : t('home.getStarted') }}
                 <Icon name="arrowRight" size="md" class="ml-2" :stroke-width="2" />
               </router-link>
-            </div>
-          </div>
 
-          <!-- Right: Terminal Animation -->
-          <div class="flex flex-1 justify-center lg:justify-end">
-            <div class="terminal-container">
-              <div class="terminal-window">
-                <!-- Window header -->
-                <div class="terminal-header">
-                  <div class="terminal-buttons">
-                    <span class="btn-close"></span>
-                    <span class="btn-minimize"></span>
-                    <span class="btn-maximize"></span>
-                  </div>
-                  <span class="terminal-title">terminal</span>
-                </div>
-                <!-- Terminal content -->
-                <div class="terminal-body">
-                  <div class="code-line line-1">
-                    <span class="code-prompt">$</span>
-                    <span class="code-cmd">curl</span>
-                    <span class="code-flag">-X POST</span>
-                    <span class="code-url">/v1/messages</span>
-                  </div>
-                  <div class="code-line line-2">
-                    <span class="code-comment"># Routing to upstream...</span>
-                  </div>
-                  <div class="code-line line-3">
-                    <span class="code-success">200 OK</span>
-                    <span class="code-response">{ "content": "Hello!" }</span>
-                  </div>
-                  <div class="code-line line-4">
-                    <span class="code-prompt">$</span>
-                    <span class="cursor"></span>
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                class="inline-flex min-w-56 items-center justify-center rounded-lg border border-gray-200 bg-white/85 px-8 py-3 text-base font-semibold text-gray-900 shadow-sm transition-colors hover:bg-gray-50 dark:border-dark-700 dark:bg-dark-800/85 dark:text-white dark:hover:bg-dark-700"
+                @click="openModelMarketplace"
+              >
+                {{ t('home.browseModelMarketplace') }}
+                <Icon name="sparkles" size="sm" class="ml-2 text-primary-500" :stroke-width="2" />
+              </button>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Feature Tags - Centered -->
         <div class="mb-12 flex flex-wrap items-center justify-center gap-4 md:gap-6">
@@ -283,7 +248,7 @@
         </div>
 
         <!-- Supported Providers -->
-        <div class="mb-8 text-center">
+        <div id="model-marketplace" class="mb-8 scroll-mt-24 text-center">
           <h2 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
             {{ t('home.providers.title') }}
           </h2>
@@ -419,7 +384,6 @@ const appStore = useAppStore()
 // Site settings - directly from appStore (already initialized from injected config)
 const siteName = computed(() => appStore.cachedPublicSettings?.site_name || appStore.siteName || 'Sub2API')
 const siteLogo = computed(() => appStore.cachedPublicSettings?.site_logo || appStore.siteLogo || '')
-const siteSubtitle = computed(() => appStore.cachedPublicSettings?.site_subtitle || 'AI API Gateway Platform')
 const docUrl = computed(() => appStore.cachedPublicSettings?.doc_url || appStore.docUrl || '')
 const homeContent = computed(() => appStore.cachedPublicSettings?.home_content || '')
 
@@ -439,11 +403,6 @@ const githubUrl = 'https://github.com/Wei-Shaw/sub2api'
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const isAdmin = computed(() => authStore.isAdmin)
 const dashboardPath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
-const userInitial = computed(() => {
-  const user = authStore.user
-  if (!user || !user.email) return ''
-  return user.email.charAt(0).toUpperCase()
-})
 
 // Current year for footer
 const currentYear = computed(() => new Date().getFullYear())
@@ -453,6 +412,13 @@ function toggleTheme() {
   isDark.value = !isDark.value
   document.documentElement.classList.toggle('dark', isDark.value)
   localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+}
+
+function openModelMarketplace() {
+  document.getElementById('model-marketplace')?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
 }
 
 // Initialize theme

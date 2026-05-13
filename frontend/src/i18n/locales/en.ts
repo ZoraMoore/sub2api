@@ -10,9 +10,13 @@ export default {
     login: 'Login',
     getStarted: 'Get Started',
     goToDashboard: 'Go to Dashboard',
+    modelNav: 'Models',
+    searchPlaceholder: 'Search models, providers, and capabilities',
+    browseModelMarketplace: 'Browse Model Marketplace',
+    heroTitle: 'Get answers. Find inspiration. Boost productivity.',
     // User-focused value proposition
     heroSubtitle: 'One Key, All AI Models',
-    heroDescription: 'No need to manage multiple subscriptions. Access Claude, GPT, Gemini and more with a single API key',
+    heroDescription: 'The new GPT-5.5, built for professional work, coding, and long-running agents, is now available to everyone.',
     tags: {
       subscriptionToApi: 'Subscription to API',
       stickySession: 'Session Persistence',
