@@ -228,6 +228,7 @@ func buildOpenAIImagesResponsesRequest(parsed *OpenAIImagesRequest, toolModel st
 	}
 
 	req := []byte(`{"instructions":"","stream":true,"reasoning":{"effort":"medium","summary":"auto"},"parallel_tool_calls":true,"include":["reasoning.encrypted_content"],"model":"","store":false,"tool_choice":{"type":"image_generation"}}`)
+	req, _ = sjson.SetBytes(req, "instructions", codexImageGenerationBridgeText)
 	req, _ = sjson.SetBytes(req, "model", openAIImagesResponsesMainModel)
 
 	input := []byte(`[{"type":"message","role":"user","content":[{"type":"input_text","text":""}]}]`)
@@ -439,6 +440,71 @@ func collectOpenAIImagesFromResponsesBody(body []byte) ([]openAIResponsesImageRe
 	return nil, createdAt, usageRaw, openAIResponsesImageResult{}, foundFinal, nil
 }
 
+func summarizeOpenAIImagesResponsesBody(body []byte) string {
+	const maxEvents = 20
+
+	summary := []byte(`{"body_bytes":0,"event_count":0,"events":[]}`)
+	summary, _ = sjson.SetBytes(summary, "body_bytes", len(body))
+
+	eventCount := 0
+	forEachOpenAISSEDataPayload(string(body), func(payload []byte) {
+		eventCount++
+		if eventCount > maxEvents || !gjson.ValidBytes(payload) {
+			return
+		}
+
+		event := []byte(`{}`)
+		eventType := strings.TrimSpace(gjson.GetBytes(payload, "type").String())
+		if eventType != "" {
+			event, _ = sjson.SetBytes(event, "type", eventType)
+		}
+		if status := strings.TrimSpace(gjson.GetBytes(payload, "response.status").String()); status != "" {
+			event, _ = sjson.SetBytes(event, "response_status", status)
+		}
+		if reason := strings.TrimSpace(gjson.GetBytes(payload, "response.incomplete_details.reason").String()); reason != "" {
+			event, _ = sjson.SetBytes(event, "incomplete_reason", truncateString(reason, 160))
+		}
+		if errVal := gjson.GetBytes(payload, "error"); errVal.Exists() {
+			if msg := strings.TrimSpace(errVal.Get("message").String()); msg != "" {
+				event, _ = sjson.SetBytes(event, "error_message", truncateString(sanitizeUpstreamErrorMessage(msg), 240))
+			}
+			if typ := strings.TrimSpace(errVal.Get("type").String()); typ != "" {
+				event, _ = sjson.SetBytes(event, "error_type", typ)
+			}
+		}
+
+		item := gjson.GetBytes(payload, "item")
+		if item.Exists() {
+			if itemType := strings.TrimSpace(item.Get("type").String()); itemType != "" {
+				event, _ = sjson.SetBytes(event, "item_type", itemType)
+			}
+			if status := strings.TrimSpace(item.Get("status").String()); status != "" {
+				event, _ = sjson.SetBytes(event, "item_status", status)
+			}
+			if item.Get("result").Exists() {
+				event, _ = sjson.SetBytes(event, "item_has_result", strings.TrimSpace(item.Get("result").String()) != "")
+			}
+		}
+
+		output := gjson.GetBytes(payload, "response.output")
+		if output.IsArray() {
+			outputTypes := make([]string, 0, len(output.Array()))
+			for _, out := range output.Array() {
+				outputTypes = append(outputTypes, strings.TrimSpace(out.Get("type").String()))
+			}
+			event, _ = sjson.SetBytes(event, "output_types", outputTypes)
+		}
+
+		summary, _ = sjson.SetRawBytes(summary, "events.-1", event)
+	})
+
+	summary, _ = sjson.SetBytes(summary, "event_count", eventCount)
+	if eventCount > maxEvents {
+		summary, _ = sjson.SetBytes(summary, "events_truncated", true)
+	}
+	return truncateString(string(summary), 2048)
+}
+
 func buildOpenAIImagesAPIResponse(
 	results []openAIResponsesImageResult,
 	createdAt int64,
@@ -562,6 +628,8 @@ func (s *OpenAIGatewayService) handleOpenAIImagesOAuthNonStreamingResponse(
 		return OpenAIUsage{}, 0, err
 	}
 	if len(results) == 0 {
+		detail := summarizeOpenAIImagesResponsesBody(body)
+		setOpsUpstreamError(c, 0, "upstream did not return image output", detail)
 		return OpenAIUsage{}, 0, fmt.Errorf("upstream did not return image output")
 	}
 	if strings.TrimSpace(firstMeta.Model) == "" {
@@ -968,10 +1036,12 @@ func (s *OpenAIGatewayService) forwardOpenAIImagesOAuth(
 	}
 	upstreamReq.Header.Set("Content-Type", "application/json")
 	upstreamReq.Header.Set("Accept", "text/event-stream")
-	// 图片工具链依赖 Codex 内部接口能力；避免透传 Cherry Studio/浏览器等客户端标识后，
-	// 上游返回完整 SSE 但不产出 image_generation_call.result。
-	upstreamReq.Header.Set("originator", "codex_cli_rs")
-	upstreamReq.Header.Set("User-Agent", codexCLIUserAgent)
+	upstreamReq.Header.Set("originator", "opencode")
+	if customUA := strings.TrimSpace(account.GetOpenAIUserAgent()); customUA != "" {
+		upstreamReq.Header.Set("User-Agent", customUA)
+	} else {
+		upstreamReq.Header.Set("User-Agent", codexCLIUserAgent)
+	}
 
 	proxyURL := ""
 	if account.ProxyID != nil && account.Proxy != nil {

@@ -528,7 +528,7 @@ func TestOpenAIGatewayServiceForwardImages_OAuthUsesResponsesAPI(t *testing.T) {
 	require.Equal(t, "text/event-stream", upstream.lastReq.Header.Get("Accept"))
 	require.Equal(t, "acct-123", upstream.lastReq.Header.Get("chatgpt-account-id"))
 	require.Equal(t, "responses=experimental", upstream.lastReq.Header.Get("OpenAI-Beta"))
-	require.Equal(t, "codex_cli_rs", upstream.lastReq.Header.Get("originator"))
+	require.Equal(t, "opencode", upstream.lastReq.Header.Get("originator"))
 	require.Equal(t, codexCLIUserAgent, upstream.lastReq.Header.Get("User-Agent"))
 
 	require.Equal(t, openAIImagesResponsesMainModel, gjson.GetBytes(upstream.lastBody, "model").String())
@@ -1122,6 +1122,7 @@ func TestBuildOpenAIImagesResponsesRequest_DowngradesMultipleImagesToSingle(t *t
 	require.NoError(t, err)
 	require.NotNil(t, body)
 	require.False(t, gjson.GetBytes(body, "tools.0.n").Exists())
+	require.Contains(t, gjson.GetBytes(body, "instructions").String(), codexImageGenerationBridgeMarker)
 	require.Equal(t, "gpt-image-2", gjson.GetBytes(body, "tools.0.model").String())
 	require.Equal(t, "draw a cat", gjson.GetBytes(body, "input.0.content.0.text").String())
 }
@@ -1142,6 +1143,23 @@ func TestBuildOpenAIImagesResponsesRequest_StripsInputFidelity(t *testing.T) {
 	require.NotNil(t, body)
 	require.False(t, gjson.GetBytes(body, "tools.0.input_fidelity").Exists())
 	require.Equal(t, "edit", gjson.GetBytes(body, "tools.0.action").String())
+}
+
+func TestSummarizeOpenAIImagesResponsesBody_DoesNotIncludeImageResult(t *testing.T) {
+	body := []byte(
+		"data: {\"type\":\"response.output_item.done\",\"item\":{\"id\":\"ig_123\",\"type\":\"image_generation_call\",\"result\":\"SECRET_IMAGE_BASE64\",\"status\":\"completed\"}}\n\n" +
+			"data: {\"type\":\"response.completed\",\"response\":{\"status\":\"completed\",\"output\":[{\"type\":\"message\"}]}}\n\n" +
+			"data: [DONE]\n\n",
+	)
+
+	summary := summarizeOpenAIImagesResponsesBody(body)
+	require.NotContains(t, summary, "SECRET_IMAGE_BASE64")
+	require.True(t, gjson.Valid(summary))
+	require.Equal(t, int64(2), gjson.Get(summary, "event_count").Int())
+	require.Equal(t, "response.output_item.done", gjson.Get(summary, "events.0.type").String())
+	require.Equal(t, "image_generation_call", gjson.Get(summary, "events.0.item_type").String())
+	require.True(t, gjson.Get(summary, "events.0.item_has_result").Bool())
+	require.Equal(t, "message", gjson.Get(summary, "events.1.output_types.0").String())
 }
 
 func TestCollectOpenAIImagesFromResponsesBody_FallsBackToOutputItemDone(t *testing.T) {
