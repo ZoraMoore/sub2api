@@ -968,6 +968,10 @@ func (s *OpenAIGatewayService) forwardOpenAIImagesOAuth(
 	}
 	upstreamReq.Header.Set("Content-Type", "application/json")
 	upstreamReq.Header.Set("Accept", "text/event-stream")
+	// 图片工具链依赖 Codex 内部接口能力；避免透传 Cherry Studio/浏览器等客户端标识后，
+	// 上游返回完整 SSE 但不产出 image_generation_call.result。
+	upstreamReq.Header.Set("originator", "codex_cli_rs")
+	upstreamReq.Header.Set("User-Agent", codexCLIUserAgent)
 
 	proxyURL := ""
 	if account.ProxyID != nil && account.Proxy != nil {
