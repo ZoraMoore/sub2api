@@ -206,12 +206,8 @@ type SystemSettings struct {
 	AccountQuotaNotifyEnabled   bool               `json:"account_quota_notify_enabled"`
 	AccountQuotaNotifyEmails    []NotifyEmailEntry `json:"account_quota_notify_emails"`
 
-	// Channel Monitor feature switch
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-
-	// Available Channels feature switch (user-facing aggregate view)
-	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
+	// Model Marketplace feature switch
+	ModelMarketplaceEnabled bool `json:"model_marketplace_enabled"`
 
 	// 风控中心功能开关
 	RiskControlEnabled bool `json:"risk_control_enabled"`
@@ -276,10 +272,7 @@ type PublicSettings struct {
 	BalanceLowNotifyThreshold        float64                  `json:"balance_low_notify_threshold"`
 	BalanceLowNotifyRechargeURL      string                   `json:"balance_low_notify_recharge_url"`
 
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-
-	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
+	ModelMarketplaceEnabled bool `json:"model_marketplace_enabled"`
 
 	AffiliateEnabled bool `json:"affiliate_enabled"`
 

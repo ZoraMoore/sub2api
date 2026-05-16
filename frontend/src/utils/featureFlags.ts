@@ -14,7 +14,7 @@
  *      mount as a fallback (used when injection is missing or stale).
  *
  * If the SSR injection struct forgets to include a feature flag field — the
- * exact bug that hid the "可用渠道" menu after every refresh — the frontend
+ * exact bug that hid the "模型广场" menu after every refresh — the frontend
  * reads `undefined` until the async call resolves. An opt-in flag written as
  * `settings?.xxx_enabled === true` then evaluates to `false` and the menu
  * disappears. An opt-out flag written as `settings?.xxx_enabled !== false`
@@ -27,10 +27,10 @@
  *
  *   - **`opt-out`** (default enabled) — menu visible when settings unloaded,
  *     hidden only when the backend explicitly sends `false`. Use for features
- *     that ship enabled by default (Channel Monitor, Payment).
+ *     that ship enabled by default (Payment).
  *   - **`opt-in`**  (default disabled) — menu hidden when settings unloaded,
  *     visible only when the backend explicitly sends `true`. Use for features
- *     that ship disabled (Available Channels).
+ *     that ship disabled (Model Marketplace).
  *
  * For `opt-in` flags to render immediately on refresh, the backend **must**
  * inject the field through `PublicSettingsInjectionPayload`. A drift test in
@@ -59,9 +59,9 @@
  * ```ts
  * import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
  *
- * const flagAvailableChannels = makeSidebarFlag(FeatureFlags.availableChannels)
+ * const flagModelMarketplace = makeSidebarFlag(FeatureFlags.modelMarketplace)
  * // ...
- * { path: '/available-channels', label: ..., featureFlag: flagAvailableChannels }
+ * { path: '/models', label: ..., featureFlag: flagModelMarketplace }
  * ```
  *
  * `isFeatureFlagEnabled(flag)` returns the resolved boolean (`true` = show).
@@ -94,15 +94,10 @@ function defineFlag<K extends keyof PublicSettings>(
  * public-settings-driven switch; see the "Adding a new flag" checklist above.
  */
 export const FeatureFlags = {
-  channelMonitor: defineFlag({
-    key: 'channel_monitor_enabled',
-    mode: 'opt-out',
-    label: 'Channel Monitor',
-  }),
-  availableChannels: defineFlag({
-    key: 'available_channels_enabled',
+  modelMarketplace: defineFlag({
+    key: 'model_marketplace_enabled',
     mode: 'opt-in',
-    label: 'Available Channels',
+    label: 'Model Marketplace',
   }),
   payment: defineFlag({
     key: 'payment_enabled',

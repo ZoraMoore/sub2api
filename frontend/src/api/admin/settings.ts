@@ -514,12 +514,8 @@ export interface SystemSettings {
   account_quota_notify_enabled: boolean;
   account_quota_notify_emails: NotifyEmailEntry[];
 
-  // Channel Monitor feature switch
-  channel_monitor_enabled: boolean;
-  channel_monitor_default_interval_seconds: number;
-
-  // Available Channels feature switch
-  available_channels_enabled: boolean;
+  // Model Marketplace feature switch
+  model_marketplace_enabled: boolean;
 
   // Affiliate (邀请返利) feature switch
   affiliate_enabled: boolean;
@@ -707,12 +703,8 @@ export interface UpdateSettingsRequest {
   account_quota_notify_enabled?: boolean;
   account_quota_notify_emails?: NotifyEmailEntry[];
 
-  // Channel Monitor feature switch
-  channel_monitor_enabled?: boolean;
-  channel_monitor_default_interval_seconds?: number;
-
-  // Available Channels feature switch
-  available_channels_enabled?: boolean;
+  // Model Marketplace feature switch
+  model_marketplace_enabled?: boolean;
 
   // Affiliate (邀请返利) feature switch
   affiliate_enabled?: boolean;

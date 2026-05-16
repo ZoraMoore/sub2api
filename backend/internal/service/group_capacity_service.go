@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -58,6 +59,32 @@ func (s *GroupCapacityService) GetAllGroupCapacity(ctx context.Context) ([]Group
 		}
 		cap.GroupID = groups[i].ID
 		results = append(results, cap)
+	}
+	return results, nil
+}
+
+// GetGroupCapacityByIDs returns capacity summaries keyed by group ID.
+// Per-group runtime failures are ignored so callers can still render primary data.
+func (s *GroupCapacityService) GetGroupCapacityByIDs(ctx context.Context, groupIDs []int64) (map[int64]GroupCapacitySummary, error) {
+	if s == nil {
+		return nil, fmt.Errorf("group capacity service is not initialized")
+	}
+	results := make(map[int64]GroupCapacitySummary, len(groupIDs))
+	seen := make(map[int64]struct{}, len(groupIDs))
+	for _, groupID := range groupIDs {
+		if groupID <= 0 {
+			continue
+		}
+		if _, ok := seen[groupID]; ok {
+			continue
+		}
+		seen[groupID] = struct{}{}
+		capacity, err := s.getGroupCapacity(ctx, groupID)
+		if err != nil {
+			continue
+		}
+		capacity.GroupID = groupID
+		results[groupID] = capacity
 	}
 	return results, nil
 }

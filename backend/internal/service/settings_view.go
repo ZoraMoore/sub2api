@@ -150,12 +150,8 @@ type SystemSettings struct {
 	OpsQueryModeDefault          string
 	OpsMetricsIntervalSeconds    int
 
-	// Channel Monitor feature
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-
-	// Available Channels feature (user-facing aggregate view)
-	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
+	// Model Marketplace feature
+	ModelMarketplaceEnabled bool `json:"model_marketplace_enabled"`
 
 	// Claude Code version check
 	MinClaudeCodeVersion string
@@ -250,12 +246,8 @@ type PublicSettings struct {
 	BalanceLowNotifyThreshold   float64
 	BalanceLowNotifyRechargeURL string
 
-	// Channel Monitor feature
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-
-	// Available Channels feature (user-facing aggregate view)
-	AvailableChannelsEnabled bool `json:"available_channels_enabled"`
+	// Model Marketplace feature
+	ModelMarketplaceEnabled bool `json:"model_marketplace_enabled"`
 
 	// Affiliate (邀请返利) feature toggle
 	AffiliateEnabled bool `json:"affiliate_enabled"`

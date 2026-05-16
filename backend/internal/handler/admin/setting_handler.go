@@ -257,10 +257,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		PaymentCancelRateLimitUnit:             paymentCfg.CancelRateLimitUnit,
 		PaymentCancelRateLimitMode:             paymentCfg.CancelRateLimitMode,
 
-		ChannelMonitorEnabled:                settings.ChannelMonitorEnabled,
-		ChannelMonitorDefaultIntervalSeconds: settings.ChannelMonitorDefaultIntervalSeconds,
-
-		AvailableChannelsEnabled: settings.AvailableChannelsEnabled,
+		ModelMarketplaceEnabled: settings.ModelMarketplaceEnabled,
 
 		AffiliateEnabled: settings.AffiliateEnabled,
 	}
@@ -556,12 +553,8 @@ type UpdateSettingsRequest struct {
 	PaymentCancelRateLimitUnit    *string `json:"payment_cancel_rate_limit_unit"`
 	PaymentCancelRateLimitMode    *string `json:"payment_cancel_rate_limit_window_mode"`
 
-	// Channel Monitor feature switch
-	ChannelMonitorEnabled                *bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds *int  `json:"channel_monitor_default_interval_seconds"`
-
-	// Available Channels feature switch (user-facing)
-	AvailableChannelsEnabled *bool `json:"available_channels_enabled"`
+	// Model Marketplace feature switch
+	ModelMarketplaceEnabled *bool `json:"model_marketplace_enabled"`
 
 	// Affiliate (邀请返利) feature switch
 	AffiliateEnabled *bool `json:"affiliate_enabled"`
@@ -1475,23 +1468,11 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			}
 			return previousSettings.AccountQuotaNotifyEmails
 		}(),
-		ChannelMonitorEnabled: func() bool {
-			if req.ChannelMonitorEnabled != nil {
-				return *req.ChannelMonitorEnabled
+		ModelMarketplaceEnabled: func() bool {
+			if req.ModelMarketplaceEnabled != nil {
+				return *req.ModelMarketplaceEnabled
 			}
-			return previousSettings.ChannelMonitorEnabled
-		}(),
-		ChannelMonitorDefaultIntervalSeconds: func() int {
-			if req.ChannelMonitorDefaultIntervalSeconds != nil {
-				return *req.ChannelMonitorDefaultIntervalSeconds
-			}
-			return previousSettings.ChannelMonitorDefaultIntervalSeconds
-		}(),
-		AvailableChannelsEnabled: func() bool {
-			if req.AvailableChannelsEnabled != nil {
-				return *req.AvailableChannelsEnabled
-			}
-			return previousSettings.AvailableChannelsEnabled
+			return previousSettings.ModelMarketplaceEnabled
 		}(),
 		AffiliateEnabled: func() bool {
 			if req.AffiliateEnabled != nil {
@@ -1778,10 +1759,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		PaymentCancelRateLimitUnit:             updatedPaymentCfg.CancelRateLimitUnit,
 		PaymentCancelRateLimitMode:             updatedPaymentCfg.CancelRateLimitMode,
 
-		ChannelMonitorEnabled:                updatedSettings.ChannelMonitorEnabled,
-		ChannelMonitorDefaultIntervalSeconds: updatedSettings.ChannelMonitorDefaultIntervalSeconds,
-
-		AvailableChannelsEnabled: updatedSettings.AvailableChannelsEnabled,
+		ModelMarketplaceEnabled: updatedSettings.ModelMarketplaceEnabled,
 
 		AffiliateEnabled: updatedSettings.AffiliateEnabled,
 
@@ -2174,14 +2152,8 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	if !equalNotifyEmailEntries(before.AccountQuotaNotifyEmails, after.AccountQuotaNotifyEmails) {
 		changed = append(changed, "account_quota_notify_emails")
 	}
-	if before.ChannelMonitorEnabled != after.ChannelMonitorEnabled {
-		changed = append(changed, "channel_monitor_enabled")
-	}
-	if before.ChannelMonitorDefaultIntervalSeconds != after.ChannelMonitorDefaultIntervalSeconds {
-		changed = append(changed, "channel_monitor_default_interval_seconds")
-	}
-	if before.AvailableChannelsEnabled != after.AvailableChannelsEnabled {
-		changed = append(changed, "available_channels_enabled")
+	if before.ModelMarketplaceEnabled != after.ModelMarketplaceEnabled {
+		changed = append(changed, "model_marketplace_enabled")
 	}
 	if before.AffiliateEnabled != after.AffiliateEnabled {
 		changed = append(changed, "affiliate_enabled")

@@ -228,10 +228,104 @@ export interface PublicSettings {
   balance_low_notify_enabled: boolean
   account_quota_notify_enabled: boolean
   balance_low_notify_threshold: number
-  channel_monitor_enabled: boolean
-  channel_monitor_default_interval_seconds: number
-  available_channels_enabled: boolean
+  model_marketplace_enabled: boolean
   affiliate_enabled: boolean
+}
+
+// ==================== Shared Model Pricing Display Types ====================
+
+export interface UserPricingInterval {
+  min_tokens: number
+  max_tokens: number | null
+  tier_label?: string
+  input_price: number | null
+  output_price: number | null
+  cache_write_price: number | null
+  cache_read_price: number | null
+  per_request_price: number | null
+}
+
+export interface UserSupportedModelPricing {
+  billing_mode: import('@/constants/channel').BillingMode
+  input_price: number | null
+  output_price: number | null
+  cache_write_price: number | null
+  cache_read_price: number | null
+  image_output_price: number | null
+  per_request_price: number | null
+  intervals: UserPricingInterval[]
+}
+
+export interface UserSupportedModel {
+  name: string
+  platform: string
+  pricing: UserSupportedModelPricing | null
+}
+
+// ==================== Model Marketplace Types ====================
+
+export type MarketplacePricingMode = 'token' | 'image' | 'unknown'
+export type MarketplacePriceStatus = 'priced' | 'unpriced'
+
+export interface MarketplacePricingInterval {
+  min_tokens: number
+  max_tokens?: number | null
+  tier_label?: string
+  input_price_per_token?: number
+  output_price_per_token?: number
+  cache_write_price_per_token?: number
+  cache_read_price_per_token?: number
+  image_output_price_per_token?: number
+  per_request_price?: number
+}
+
+export interface MarketplaceModelPricing {
+  pricing_mode: MarketplacePricingMode | string
+  price_status: MarketplacePriceStatus | string
+  input_price_per_token?: number
+  output_price_per_token?: number
+  cache_write_price_per_token?: number
+  cache_read_price_per_token?: number
+  image_output_price_per_token?: number
+  per_request_price?: number
+  context_intervals?: MarketplacePricingInterval[]
+  image_price_1k?: number
+  image_price_2k?: number
+  image_price_4k?: number
+}
+
+export interface MarketplaceModel {
+  id: string
+  display_name: string
+  pricing: MarketplaceModelPricing
+}
+
+export interface MarketplaceGroupCapacity {
+  concurrency_used: number
+  concurrency_max: number
+  sessions_used: number
+  sessions_max: number
+  rpm_used: number
+  rpm_max: number
+}
+
+export interface MarketplaceGroup {
+  id: number
+  name: string
+  description?: string | null
+  platform: string
+  display_brand?: string | null
+  sort_order?: number
+  rate_multiplier: number
+  capacity?: MarketplaceGroupCapacity | null
+  model_count: number
+  models: MarketplaceModel[]
+}
+
+export interface MarketplaceStats {
+  today_tokens: number
+  total_tokens: number
+  total_users: number
 }
 
 export interface AuthResponse {

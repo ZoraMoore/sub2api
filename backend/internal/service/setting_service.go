@@ -622,9 +622,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyBalanceLowNotifyThreshold,
 		SettingKeyBalanceLowNotifyRechargeURL,
 		SettingKeyAccountQuotaNotifyEnabled,
-		SettingKeyChannelMonitorEnabled,
-		SettingKeyChannelMonitorDefaultIntervalSeconds,
-		SettingKeyAvailableChannelsEnabled,
+		SettingKeyModelMarketplaceEnabled,
 		SettingKeyAffiliateEnabled,
 		SettingKeyRiskControlEnabled,
 	}
@@ -724,89 +722,12 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		BalanceLowNotifyThreshold:        balanceLowNotifyThreshold,
 		BalanceLowNotifyRechargeURL:      settings[SettingKeyBalanceLowNotifyRechargeURL],
 
-		ChannelMonitorEnabled:                !isFalseSettingValue(settings[SettingKeyChannelMonitorEnabled]),
-		ChannelMonitorDefaultIntervalSeconds: parseChannelMonitorInterval(settings[SettingKeyChannelMonitorDefaultIntervalSeconds]),
-
-		AvailableChannelsEnabled: settings[SettingKeyAvailableChannelsEnabled] == "true",
+		ModelMarketplaceEnabled: settings[SettingKeyModelMarketplaceEnabled] == "true",
 
 		AffiliateEnabled: settings[SettingKeyAffiliateEnabled] == "true",
 
 		RiskControlEnabled: settings[SettingKeyRiskControlEnabled] == "true",
 	}, nil
-}
-
-// channelMonitorIntervalMin / channelMonitorIntervalMax bound the default interval
-// (mirrors the monitor-level constraint but lives here so setting_service stays decoupled).
-const (
-	channelMonitorIntervalMin      = 15
-	channelMonitorIntervalMax      = 3600
-	channelMonitorIntervalFallback = 60
-)
-
-// parseChannelMonitorInterval parses the stored string and clamps to [15, 3600].
-// Empty / invalid input falls back to channelMonitorIntervalFallback.
-func parseChannelMonitorInterval(raw string) int {
-	v, err := strconv.Atoi(strings.TrimSpace(raw))
-	if err != nil {
-		return channelMonitorIntervalFallback
-	}
-	return clampChannelMonitorInterval(v)
-}
-
-// clampChannelMonitorInterval clamps v to the allowed range. 0 means "not provided".
-func clampChannelMonitorInterval(v int) int {
-	if v <= 0 {
-		return 0
-	}
-	if v < channelMonitorIntervalMin {
-		return channelMonitorIntervalMin
-	}
-	if v > channelMonitorIntervalMax {
-		return channelMonitorIntervalMax
-	}
-	return v
-}
-
-// ChannelMonitorRuntime is the lightweight view of the channel monitor feature
-// consumed by the runner and user-facing handlers.
-type ChannelMonitorRuntime struct {
-	Enabled                bool
-	DefaultIntervalSeconds int
-}
-
-// GetChannelMonitorRuntime reads the channel monitor feature flags directly from
-// the settings store. Fail-open: on error returns Enabled=true with the default interval.
-func (s *SettingService) GetChannelMonitorRuntime(ctx context.Context) ChannelMonitorRuntime {
-	vals, err := s.settingRepo.GetMultiple(ctx, []string{
-		SettingKeyChannelMonitorEnabled,
-		SettingKeyChannelMonitorDefaultIntervalSeconds,
-	})
-	if err != nil {
-		return ChannelMonitorRuntime{Enabled: true, DefaultIntervalSeconds: channelMonitorIntervalFallback}
-	}
-	return ChannelMonitorRuntime{
-		Enabled:                !isFalseSettingValue(vals[SettingKeyChannelMonitorEnabled]),
-		DefaultIntervalSeconds: parseChannelMonitorInterval(vals[SettingKeyChannelMonitorDefaultIntervalSeconds]),
-	}
-}
-
-// AvailableChannelsRuntime is the lightweight view of the available-channels feature
-// switch consumed by the user-facing handler.
-type AvailableChannelsRuntime struct {
-	Enabled bool
-}
-
-// GetAvailableChannelsRuntime reads the available-channels feature switch directly
-// from the settings store. Fail-closed: on error returns Enabled=false, matching
-// the opt-in default (unknown ↔ disabled).
-func (s *SettingService) GetAvailableChannelsRuntime(ctx context.Context) AvailableChannelsRuntime {
-	vals, err := s.settingRepo.GetMultiple(ctx, []string{SettingKeyAvailableChannelsEnabled})
-	if err != nil {
-		return AvailableChannelsRuntime{Enabled: false}
-	}
-	return AvailableChannelsRuntime{
-		Enabled: vals[SettingKeyAvailableChannelsEnabled] == "true",
-	}
 }
 
 // SetOnUpdateCallback sets a callback function to be called when settings are updated
@@ -879,14 +800,10 @@ type PublicSettingsInjectionPayload struct {
 	BalanceLowNotifyThreshold        float64                  `json:"balance_low_notify_threshold"`
 	BalanceLowNotifyRechargeURL      string                   `json:"balance_low_notify_recharge_url"`
 
-	// Feature flags — MUST match the opt-in/opt-out registry in
-	// frontend/src/utils/featureFlags.ts. Missing a field here is the bug
-	// that hid the "可用渠道" menu on page refresh.
-	ChannelMonitorEnabled                bool `json:"channel_monitor_enabled"`
-	ChannelMonitorDefaultIntervalSeconds int  `json:"channel_monitor_default_interval_seconds"`
-	AvailableChannelsEnabled             bool `json:"available_channels_enabled"`
-	AffiliateEnabled                     bool `json:"affiliate_enabled"`
-	RiskControlEnabled                   bool `json:"risk_control_enabled"`
+	// Feature flags — MUST match the opt-in/opt-out registry in frontend/src/utils/featureFlags.ts.
+	ModelMarketplaceEnabled bool `json:"model_marketplace_enabled"`
+	AffiliateEnabled        bool `json:"affiliate_enabled"`
+	RiskControlEnabled      bool `json:"risk_control_enabled"`
 }
 
 // GetPublicSettingsForInjection returns public settings in a format suitable for HTML injection.
@@ -943,11 +860,9 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		BalanceLowNotifyThreshold:        settings.BalanceLowNotifyThreshold,
 		BalanceLowNotifyRechargeURL:      settings.BalanceLowNotifyRechargeURL,
 
-		ChannelMonitorEnabled:                settings.ChannelMonitorEnabled,
-		ChannelMonitorDefaultIntervalSeconds: settings.ChannelMonitorDefaultIntervalSeconds,
-		AvailableChannelsEnabled:             settings.AvailableChannelsEnabled,
-		AffiliateEnabled:                     settings.AffiliateEnabled,
-		RiskControlEnabled:                   settings.RiskControlEnabled,
+		ModelMarketplaceEnabled: settings.ModelMarketplaceEnabled,
+		AffiliateEnabled:        settings.AffiliateEnabled,
+		RiskControlEnabled:      settings.RiskControlEnabled,
 	}, nil
 }
 
@@ -1554,14 +1469,8 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 		updates[SettingKeyOpsMetricsIntervalSeconds] = strconv.Itoa(settings.OpsMetricsIntervalSeconds)
 	}
 
-	// Channel monitor feature switch
-	updates[SettingKeyChannelMonitorEnabled] = strconv.FormatBool(settings.ChannelMonitorEnabled)
-	if v := clampChannelMonitorInterval(settings.ChannelMonitorDefaultIntervalSeconds); v > 0 {
-		updates[SettingKeyChannelMonitorDefaultIntervalSeconds] = strconv.Itoa(v)
-	}
-
-	// Available channels feature switch
-	updates[SettingKeyAvailableChannelsEnabled] = strconv.FormatBool(settings.AvailableChannelsEnabled)
+	// Model marketplace feature switch
+	updates[SettingKeyModelMarketplaceEnabled] = strconv.FormatBool(settings.ModelMarketplaceEnabled)
 
 	// Affiliate (邀请返利) feature switch
 	updates[SettingKeyAffiliateEnabled] = strconv.FormatBool(settings.AffiliateEnabled)
@@ -2338,12 +2247,9 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyOpsQueryModeDefault:          "auto",
 		SettingKeyOpsMetricsIntervalSeconds:    "60",
 
-		// Channel monitor defaults (enabled, 60s)
-		SettingKeyChannelMonitorEnabled:                "true",
-		SettingKeyChannelMonitorDefaultIntervalSeconds: "60",
 
-		// Available channels feature (default disabled; opt-in)
-		SettingKeyAvailableChannelsEnabled: "false",
+		// Model marketplace feature (default disabled; opt-in)
+		SettingKeyModelMarketplaceEnabled: "false",
 
 		// Affiliate (邀请返利) feature (default disabled; opt-in)
 		SettingKeyAffiliateEnabled: "false",
@@ -2703,14 +2609,8 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		}
 	}
 
-	// Channel monitor feature (default: enabled, 60s)
-	result.ChannelMonitorEnabled = !isFalseSettingValue(settings[SettingKeyChannelMonitorEnabled])
-	result.ChannelMonitorDefaultIntervalSeconds = parseChannelMonitorInterval(
-		settings[SettingKeyChannelMonitorDefaultIntervalSeconds],
-	)
-
-	// Available channels feature (default: disabled; strict true)
-	result.AvailableChannelsEnabled = settings[SettingKeyAvailableChannelsEnabled] == "true"
+	// Model marketplace feature (default: disabled; strict true)
+	result.ModelMarketplaceEnabled = settings[SettingKeyModelMarketplaceEnabled] == "true"
 
 	// Affiliate (邀请返利) feature (default: disabled; strict true)
 	result.AffiliateEnabled = settings[SettingKeyAffiliateEnabled] == "true"

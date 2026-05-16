@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-1">
+  <div :class="layoutClass">
     <!-- 并发槽位 -->
     <div class="flex items-center gap-1">
       <span
@@ -54,6 +54,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Props {
   concurrencyUsed: number
   concurrencyMax: number
@@ -61,16 +63,24 @@ interface Props {
   sessionsMax: number
   rpmUsed: number
   rpmMax: number
+  layout?: 'vertical' | 'horizontal'
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   concurrencyUsed: 0,
   concurrencyMax: 0,
   sessionsUsed: 0,
   sessionsMax: 0,
   rpmUsed: 0,
-  rpmMax: 0
+  rpmMax: 0,
+  layout: 'vertical'
 })
+
+const layoutClass = computed(() =>
+  props.layout === 'horizontal'
+    ? 'flex flex-row flex-wrap items-center gap-1'
+    : 'flex flex-col gap-1'
+)
 
 function capacityClass(used: number, max: number): string {
   if (max > 0 && used >= max) {

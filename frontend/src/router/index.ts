@@ -37,6 +37,17 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/models',
+    name: 'ModelMarketplace',
+    component: () => import('@/views/ModelMarketplaceView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Model Marketplace',
+      titleKey: 'marketplace.title',
+      descriptionKey: 'marketplace.description'
+    }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/auth/LoginView.vue'),
@@ -221,15 +232,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/available-channels',
-    name: 'UserAvailableChannels',
-    component: () => import('@/views/user/AvailableChannelsView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Available Channels',
-      titleKey: 'availableChannels.title',
-      descriptionKey: 'availableChannels.description'
-    }
+    redirect: '/models'
   },
   {
     path: '/profile',
@@ -394,42 +397,23 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/admin/channels',
-    redirect: '/admin/channels/pricing'
+    redirect: '/admin/channels/model-pricing'
   },
   {
-    path: '/admin/channels/pricing',
-    name: 'AdminChannels',
+    path: '/admin/channels/model-pricing',
+    name: 'AdminModelPricing',
     component: () => import('@/views/admin/ChannelsView.vue'),
     meta: {
       requiresAuth: true,
       requiresAdmin: true,
-      title: 'Channel Management',
+      title: 'Model Pricing',
       titleKey: 'admin.channels.title',
       descriptionKey: 'admin.channels.description'
     }
   },
   {
-    path: '/admin/channels/monitor',
-    name: 'AdminChannelMonitor',
-    component: () => import('@/views/admin/ChannelMonitorView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: true,
-      title: 'Channel Monitor',
-      titleKey: 'admin.channelMonitor.title',
-      descriptionKey: 'admin.channelMonitor.description'
-    }
-  },
-  {
-    path: '/monitor',
-    name: 'ChannelStatus',
-    component: () => import('@/views/user/ChannelStatusView.vue'),
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: false,
-      title: 'Channel Status',
-      titleKey: 'nav.channelStatus'
-    }
+    path: '/admin/channels/pricing',
+    redirect: '/admin/channels/model-pricing'
   },
   {
     path: '/admin/subscriptions',

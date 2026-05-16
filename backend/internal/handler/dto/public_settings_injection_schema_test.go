@@ -13,8 +13,8 @@ import (
 //
 // Why this test exists: before we extracted a named PublicSettingsInjectionPayload
 // type, the inline struct was manually kept in sync with dto.PublicSettings and
-// drifted — ChannelMonitorEnabled / AvailableChannelsEnabled were missing, which
-// made the frontend read `undefined` on refresh and hide the "可用渠道" menu
+// drifted — feature flags such as ModelMarketplaceEnabled were missing, which
+// made the frontend read `undefined` on refresh and hide the "模型广场" menu
 // until the async /api/v1/settings/public round-trip finished.
 //
 // This test compares the two JSON-tag sets and fails if injection is missing
